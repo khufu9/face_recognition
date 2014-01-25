@@ -23,15 +23,17 @@ import os, cv, re
 import operator
 import numpy as np
 
-def mat_from_img_path(img_path):
+def vec_from_img_path(img_path):
 	img = np.asarray( cv.LoadImageM(img_path , cv.CV_LOAD_IMAGE_GRAYSCALE) )
 	return np.reshape( img[:,:], (reduce(operator.mul, img.shape), 1))
 	
-def compute_eigenface(U,v,X):
+def compute_eigenface(UT,v,X):
 	p = np.subtract(v,X)
-	eigf = np.dot(U,p)
+	eigf = np.dot(UT,p)
 	return eigf
+
 # =====================================
+
 #
 # Training
 #
@@ -64,9 +66,15 @@ def train(db_path="",):
 	D = np.diag(D)
 	U = np.dot(B, np.dot(V,D))
 
-	A = np.asarray([compute_eigenface(U.T,v,X) for v in A])
+	O = None
+	for v in A.T:
+		if O == None:
+			O = compute_eigenface(U.T,v.T,X)
+		else:
+			np.hstack((O, compute_eigenface(U.T,v.T,X)))
 
-	return A, U.T, X
+
+	return O, U.T, X
 
 
 # =====================================
@@ -76,23 +84,10 @@ def train(db_path="",):
 # U is the eigenface basis.
 # 
 # =====================================
-def lookup(A,mat,U,X):
-	
-	mat = np.reshape(mat, (reduce(operator.mul, mat.shape), 1))
+def recognize(O,U,v,X):
 
-	v = compute_eigenface(mat)
+	o = compute_eigenface(U,v,X)
+	
+	for ok in O:
+		print np.linalg.norm(o-ok)
 
-	p = np.subtract(v,X)
-	
-	print "p",p.shape
-	# Projection onto face space
-	eigf = np.dot(U, p)
-	
-	print X.shape, eigf.shape
-	e = np.subtract(X,eigf)
-	E = np.subtract(X,U)
-	
-	d = abs(np.sum(np.square(np.subtract(eigf,E))/np.square(np.std(np.subtract(eigf,E))),axis=0))
-	
-	print list(d).index(min(d))	
- 
