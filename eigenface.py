@@ -32,47 +32,51 @@ def compute_eigenface(UT,v,X):
 	eigf = np.dot(UT,p)
 	return eigf
 
-# =====================================
 
+def file_list_from_path(db_path="./faces/"):
+	file_suffix_matcher = re.compile(".jpg|.jpeg|.jpe|.pgm|.ppm|.pbm|.png|.tiff|.tif")
+	files = map(lambda x: db_path+x, os.listdir(db_path))
+	return files
+
+# =====================================
 #
 # Training
 #
 # =====================================
-def train(db_path="",):
-
-	print "Training: loading from database ",db_path
-	file_suffix_matcher = re.compile(".jpg|.jpeg|.jpe|.pgm|.ppm|.pbm|.png|.tiff|.tif")
-	files = os.listdir(db_path)
+def train(file_list):
 
 	# Load files as cvMats
-	images = [ np.asarray(cv.LoadImageM(db_path+file_name, cv.CV_LOAD_IMAGE_GRAYSCALE)) for file_name in files ]
-		
+	images = [ np.asarray(cv.LoadImageM(file_path, cv.CV_LOAD_IMAGE_GRAYSCALE)) for file_path in file_list ]
+	
 	# Reshape and stack images as columns of a huge matrix
 	images = np.asarray(map(lambda M: np.reshape(M[:,:],reduce(operator.mul, M.shape), 1), images))
-	A = np.matrix(images.T)
+	R = np.matrix(images.T)
 
 	print "Training: computing eigenface basis"
-	X = np.array(np.mean(A,axis=1))
-	B = np.subtract(A,X)
-	D,V = np.linalg.eig( np.dot(B.T,B) )
+	X = np.mean(R,axis=1)
+	A = np.subtract(R,X)
+	print "A",A.shape
+	D,V = np.linalg.eig( A.T*A )
 
 	print "Training: sorting by descending eigen value"
-	ind = filter(lambda x: x>0.0, D.argsort()[::-1])
-	D = D[ind]
-	V = V[:,ind]
+	ind = D.argsort()[::-1]
+	[D,V] = map(np.array,zip(*filter(lambda x: x[0]>0.0,zip(np.real(D[ind]),V[:,ind].T))))
+	V = V.T
 
 	print "Training: computing eigenfaces"
 	D = np.sqrt(1.0/D)
 	D = np.diag(D)
-	U = np.dot(B, np.dot(V,D))
+	print "A",A.shape,"V",V.shape,"D",D.shape
+	U = A*V*D
+
+	print "Training: Eigenbasis axes",U.shape[1]
 
 	O = None
-	for v in A.T:
+	for v in R.T:
 		if O == None:
 			O = compute_eigenface(U.T,v.T,X)
 		else:
-			np.hstack((O, compute_eigenface(U.T,v.T,X)))
-
+			O = np.hstack((O, compute_eigenface(U.T,v.T,X)))
 
 	return O, U.T, X
 
@@ -87,7 +91,16 @@ def train(db_path="",):
 def recognize(O,U,v,X):
 
 	o = compute_eigenface(U,v,X)
-	
-	for ok in O:
-		print np.linalg.norm(o-ok)
 
+
+	i = 0
+	mi = 0
+	mv = 1e9
+	for ok in O.T:
+		L2 = np.linalg.norm(o-ok)
+		if L2 < mv:
+			mi = i
+			mv = L2
+		i += 1
+	
+	return mi
