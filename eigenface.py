@@ -23,14 +23,14 @@ import os, cv, re
 import operator
 import numpy as np
 
-
-
 def mat_from_img_path(img_path):
-	
 	img = np.asarray( cv.LoadImageM(img_path , cv.CV_LOAD_IMAGE_GRAYSCALE) )
-		
-	return np.reshape( img[:,:], reduce(operator.mul, img.shape), 1)
+	return np.reshape( img[:,:], (reduce(operator.mul, img.shape), 1))
 	
+def compute_eigenface(U,v,X):
+	p = np.subtract(v,X)
+	eigf = np.dot(U,p)
+	return eigf
 # =====================================
 #
 # Training
@@ -50,7 +50,7 @@ def train(db_path="",):
 	A = np.matrix(images.T)
 
 	print "Training: computing eigenface basis"
-	X = np.mean(A,axis=1)
+	X = np.array(np.mean(A,axis=1))
 	B = np.subtract(A,X)
 	D,V = np.linalg.eig( np.dot(B.T,B) )
 
@@ -62,10 +62,11 @@ def train(db_path="",):
 	print "Training: computing eigenfaces"
 	D = np.sqrt(1.0/D)
 	D = np.diag(D)
-	print V.shape,D.shape,B.shape
 	U = np.dot(B, np.dot(V,D))
 
-	return U.T
+	A = np.asarray([compute_eigenface(U.T,v,X) for v in A])
+
+	return A, U.T, X
 
 
 # =====================================
@@ -75,22 +76,23 @@ def train(db_path="",):
 # U is the eigenface basis.
 # 
 # =====================================
+def lookup(A,mat,U,X):
+	
+	mat = np.reshape(mat, (reduce(operator.mul, mat.shape), 1))
 
-def lookup(mat,U,X):
+	v = compute_eigenface(mat)
 
-	v = np.reshape(mat, reduce(operator.mul, mat.shape), 1)
 	p = np.subtract(v,X)
+	
+	print "p",p.shape
 	# Projection onto face space
-	eigf = np.dot(U,p)
+	eigf = np.dot(U, p)
 	
+	print X.shape, eigf.shape
 	e = np.subtract(X,eigf)
-	
 	E = np.subtract(X,U)
-
+	
 	d = abs(np.sum(np.square(np.subtract(eigf,E))/np.square(np.std(np.subtract(eigf,E))),axis=0))
 	
 	print list(d).index(min(d))	
-
-
-	
-
+ 
