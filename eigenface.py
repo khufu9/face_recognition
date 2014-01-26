@@ -45,6 +45,8 @@ def file_list_from_path(db_path="./faces/"):
 # =====================================
 def train(file_list):
 
+	print file_list
+
 	# Load files as cvMats
 	images = [ np.asarray(cv.LoadImageM(file_path, cv.CV_LOAD_IMAGE_GRAYSCALE)) for file_path in file_list ]
 	
@@ -55,7 +57,6 @@ def train(file_list):
 	print "Training: computing eigenface basis"
 	X = np.mean(R,axis=1)
 	A = np.subtract(R,X)
-	print "A",A.shape
 	D,V = np.linalg.eig( A.T*A )
 
 	print "Training: sorting by descending eigen value"
