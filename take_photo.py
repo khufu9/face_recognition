@@ -2,7 +2,7 @@ import os
 import cv
 import random
 
-capdevice =0 # 0 for integrated cam 1 for usb-cam
+device = 1 # 0 for integrated cam 1 for usb-cam
 
 		
 def write(font, img, point,string,rgb=(255,255,255)):
@@ -11,12 +11,12 @@ def write(font, img, point,string,rgb=(255,255,255)):
 window_name = str(random.randint(100000,200000))	
 font =  cv.InitFont( cv.CV_FONT_HERSHEY_SIMPLEX, 0.4, 0.4, 0.0, 1, cv.CV_AA )
 	
-capture = cv.CreateCameraCapture(0)
+capture = cv.CreateCameraCapture(device)
 img = cv.QueryFrame(capture)
 cv.NamedWindow(window_name,1)
 cv.ResizeWindow(window_name, img.width, img.height)
 	
-face_cascade = cv.Load("../haarcascade_frontalface_alt.xml")
+face_cascade = cv.Load("haarcascade_frontalface_alt.xml")
 haar_scale = 1.2
 min_neighbors = 2
 haar_flags = 0
@@ -81,17 +81,3 @@ while True:
 		name = raw_input("Enter name: ")
 		cv.SaveImage("./"+name+".jpg", gray_face)
 		print "Portrait was saved as: ./"+name+".jpg"
-	else:
-		print key
-
-
-	#
-	#key = cv.WaitKey(10)
-	#
-	#if key == 113:
-	#	scan.killWindow()
-	#	break
-	#else:
-	#	if key != -1:
-	#		print key
-

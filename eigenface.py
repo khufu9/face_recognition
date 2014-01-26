@@ -27,6 +27,10 @@ def vec_from_img_path(img_path):
 	img = np.asarray( cv.LoadImageM(img_path , cv.CV_LOAD_IMAGE_GRAYSCALE) )
 	return np.reshape( img[:,:], (reduce(operator.mul, img.shape), 1))
 	
+def vec_from_img(img):
+	mat = np.asarray(img[:,:])
+	return np.reshape( mat[:,:], (reduce(operator.mul, mat.shape), 1))
+	
 def compute_eigenface(UT,v,X):
 	p = np.subtract(v,X)
 	eigf = np.dot(UT,p)
