@@ -30,7 +30,11 @@ files = file_list_from_path("path-to-face-files")
 O,UT,X = eigenface.train(files)
 
 # load another face
-vec = vec_from_img_path("path-to-face.jpg")
+vec = eigenface.vec_from_img_path("path-to-face.jpg")
 
-eigenface.recognize(O,U,vec,X) # return the column-index in O which was recognized as the input vec
+# return the column-index of O which was recognized as the input vec
+ind = eigenface.recognize(O,U,vec,X) 
+
+print files[ind]
+
 ```
