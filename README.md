@@ -1,7 +1,7 @@
 Face Recognition - Simple face recognition based on eigenfaces
 ==============================================================
 
-face_recognition is a self-contained implementation of the Eigenface-method in Python using OpenCV and NumPy.
+`face_recognition` is a self-contained implementation of the Eigenface-method in Python using OpenCV and NumPy.
 This repository provides the core-library and some applications for testing. 
 
 * Website: [www.indrome.com](www.indrome.com)
@@ -9,8 +9,8 @@ This repository provides the core-library and some applications for testing.
 Dependencies
 ------------
 
-Python 2.X (tested 2.7.6) 
-Numpy 1.8 (tested 1.8.0)
+* Python 2.X (tested 2.7.6) 
+* Numpy 1.8 (tested 1.8.0)
 
 Example: testing
 ----------------
